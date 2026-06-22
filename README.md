@@ -1,10 +1,62 @@
-# SQL WorkBench
+# SQL Workbench
 
-This repository contains examples and exercises for optimizing MySQL queries.
+SQL Workbench is a MySQL environment for comparing schema design, indexing strategies, and query performance with large datasets.
 
-Flow
-1. Install MySQL server and set up a database.
-2. Run the SQL scripts in the `schema.sql` file to create the necessary tables.
-3. Run the appropriate python scripts to populate data in the tables.
-4. After populating the data, create indexes based on the queries in the `queries.sql` file to optimize their performance. So that the tables are optimized for the queries you will run. You can use the `EXPLAIN` statement to analyze the query execution plan and identify potential performance bottlenecks.
-5. Run the queries in the `queries.sql` file and analyze their performance using EXPLAIN or other profiling tools.
+
+## Setup
+
+Create the database:
+
+```sql
+CREATE DATABASE performance_db;
+```
+
+Install dependencies:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+Create both user tables:
+
+```bash
+mysql -u root -p performance_db < schema/users_raw.sql
+mysql -u root -p performance_db < schema/users_optimized.sql
+```
+
+The loaders use MySQL at `localhost` with `root`/`root` by default. Update their configuration constants if needed.
+
+## Usage
+
+Generate users with the Faker-based loader:
+
+```bash
+python scripts/populate_users.py
+```
+
+Alternatively, run the producer/consumer loader with live throughput metrics:
+
+```bash
+python benchmarks/benchmark_users.py
+```
+
+Both loaders insert identical data into `users_raw` and `users_optimized`. Run only one unless you want an additional dataset.
+
+Execute workloads from `queries/`, then use `EXPLAIN` or `EXPLAIN ANALYZE` to compare query plans and execution time.
+
+```sql
+EXPLAIN ANALYZE
+SELECT *
+FROM users_optimized
+WHERE email = 'user900000@test.com';
+```
+
+Indexing and measurement guidance is available in `docs/`. Use `schema/reset_users_indexes.sql` to remove the named experimental indexes after testing.
+
+## Planned Workloads
+
+- Orders
+- Payments
+- Inventory
+- Booking and ride-sharing systems
+
